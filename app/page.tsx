@@ -12,7 +12,6 @@ const countryNames: Record<string, string> = {
   Japan: "日本",
   Malaysia: "马来西亚",
   Türkiye: "土耳其",
-  "United Arab Emirates": "阿联酋",
   "New Zealand": "新西兰",
   Finland: "芬兰",
   Norway: "挪威",
@@ -42,7 +41,6 @@ const cities: City[] = [
   { name: "Kota Kinabalu", local: "哥打京那巴鲁", country: "Malaysia", lat: 5.9804, lon: 116.0735 },
   { name: "Tawau", local: "斗湖", country: "Malaysia", lat: 4.2448, lon: 117.8912 },
   { name: "Istanbul", local: "伊斯坦布尔", country: "Türkiye", lat: 41.0082, lon: 28.9784 },
-  { name: "Dubai", local: "迪拜", country: "United Arab Emirates", lat: 25.2048, lon: 55.2708 },
 ];
 
 const upcomingCities: City[] = [
@@ -159,7 +157,7 @@ export default function Home() {
 
       <header className="hero">
         <h1>The World I’ve Explored</h1>
-        <p><strong>5</strong> Countries <span>·</span> <strong>24</strong> Cities</p>
+        <p><strong>4</strong> Countries <span>·</span> <strong>23</strong> Cities</p>
       </header>
 
       <nav className="map-controls" aria-label="Map controls">
@@ -169,10 +167,6 @@ export default function Home() {
       </nav>
       <div className="scale"><span>2,000 km</span><i /></div>
       <div className="hint"><span>↖</span> Drag to explore <b>·</b> Scroll to zoom</div>
-      <div className="legend" aria-label="地图图例">
-        <span><i className="visited-dot" />已经点亮</span>
-        <span><i className="upcoming-dot" />即将点亮</span>
-      </div>
     </main>
   );
 }
