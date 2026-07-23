@@ -7,6 +7,14 @@ import world from "world-atlas/countries-110m.json";
 
 type City = { name: string; local: string; country: string; lat: number; lon: number };
 
+const countryNames: Record<string, string> = {
+  China: "中国",
+  Japan: "日本",
+  Malaysia: "马来西亚",
+  Türkiye: "土耳其",
+  "United Arab Emirates": "阿联酋",
+};
+
 const cities: City[] = [
   { name: "Shenzhen", local: "深圳", country: "China", lat: 22.5431, lon: 114.0579 },
   { name: "Guangzhou", local: "广州", country: "China", lat: 23.1291, lon: 113.2644 },
@@ -94,7 +102,7 @@ export default function Home() {
                     key={city.name}
                     className="city-node"
                     transform={`translate(${point[0]} ${point[1]})`}
-                    aria-label={`${city.name}, ${city.country}`}
+                    aria-label={`${city.local}，${countryNames[city.country]}`}
                     onPointerDown={(event) => event.stopPropagation()}
                   >
                     <circle className="hit" r="12" />
@@ -102,8 +110,8 @@ export default function Home() {
                     <circle className="core" r="2.8" />
                     <g className="city-label">
                       <rect x="12" y="-20" width="118" height="39" rx="7" />
-                      <text x="22" y="-5">{city.name}</text>
-                      <text className="sub" x="22" y="10">{city.country}</text>
+                      <text x="22" y="-5">{city.local}</text>
+                      <text className="sub" x="22" y="10">{countryNames[city.country]}</text>
                     </g>
                   </g>
                 );
