@@ -43,7 +43,6 @@ const projection = geoNaturalEarth1().fitExtent([[18, 18], [MAP_W - 18, MAP_H - 
 const path = geoPath(projection);
 
 export default function Home() {
-  const [selected, setSelected] = useState<City | null>(null);
   const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
 
@@ -51,7 +50,7 @@ export default function Home() {
   const reset = () => setView({ scale: 1, x: 0, y: 0 });
 
   return (
-    <main className="experience" onClick={() => setSelected(null)}>
+    <main className="experience">
       <div
         className="map-viewport"
         onPointerDown={(event) => {
@@ -95,12 +94,8 @@ export default function Home() {
                     key={city.name}
                     className="city-node"
                     transform={`translate(${point[0]} ${point[1]})`}
-                    role="button"
-                    tabIndex={0}
                     aria-label={`${city.name}, ${city.country}`}
                     onPointerDown={(event) => event.stopPropagation()}
-                    onClick={(event) => { event.stopPropagation(); setSelected(city); }}
-                    onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setSelected(city); }}
                   >
                     <circle className="hit" r="12" />
                     <circle className="halo" r="8" />
@@ -130,28 +125,6 @@ export default function Home() {
       </nav>
       <div className="scale"><span>2,000 km</span><i /></div>
       <div className="hint"><span>↖</span> Drag to explore <b>·</b> Scroll to zoom</div>
-
-      <aside className="drawer" onClick={(event) => event.stopPropagation()}>
-        <button className="close" aria-label="Clear city selection" onClick={() => setSelected(null)}>×</button>
-        {selected ? (
-          <>
-            <h2>{selected.name}</h2>
-            <p className="country">{selected.country}</p>
-            <p className="local">{selected.local}</p>
-          </>
-        ) : (
-          <div className="empty"><h2>No city selected</h2><p>Click a glowing city to see details</p></div>
-        )}
-        <div className="mini-world" aria-hidden="true">
-          <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`}>
-            <g className="countries">{countries.features.map((c, i) => <path key={i} d={path(c) ?? ""} />)}</g>
-            {selected && (() => {
-              const p = projection([selected.lon, selected.lat]);
-              return p ? <circle className="mini-light" cx={p[0]} cy={p[1]} r="7" /> : null;
-            })()}
-          </svg>
-        </div>
-      </aside>
     </main>
   );
 }
