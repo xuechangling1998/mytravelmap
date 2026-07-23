@@ -5,12 +5,15 @@
 html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#030a14; }
 body { color:var(--ink); font-family:Arial, Helvetica, sans-serif; }
 button { color:inherit; font:inherit; }
-.experience { position:relative; width:100vw; height:100dvh; overflow:hidden; background:radial-gradient(circle at 54% 48%,#0b1c31 0,#061221 38%,#020812 78%); }
+.experience { position:relative; width:100vw; height:100dvh; overflow:hidden; background:#020912 url("/prototype-map.png") center center / cover no-repeat; }
 .experience::after { content:""; position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 180px rgba(0,0,0,.72); }
-.hero { position:absolute; z-index:5; left:50%; top:35px; transform:translateX(-50%); width:min(820px,80vw); text-align:center; pointer-events:none; text-shadow:0 3px 24px #02050a; }
-.eyebrow { margin:0 0 10px; color:#7e91aa; font-size:10px; font-weight:700; letter-spacing:.28em; }
+.prototype-mask { position:absolute; z-index:2; pointer-events:none; background:#030a14; }
+.mask-header { left:17%; right:18%; top:0; height:148px; background:linear-gradient(180deg,#030a14 0%,#030a14 78%,rgba(3,10,20,0) 100%); }
+.mask-drawer { right:0; top:0; bottom:0; width:20%; background:linear-gradient(90deg,rgba(3,10,20,.15),#030a14 12%); }
+.mask-tooltip { left:67.5%; top:43%; width:11%; height:14%; border-radius:22px; background:radial-gradient(ellipse at 20% 50%,#0b1727 0,#071321 58%,rgba(4,12,22,.5) 76%,transparent 100%); }
+.hero { position:absolute; z-index:5; left:50%; top:42px; transform:translateX(-50%); width:min(820px,80vw); text-align:center; pointer-events:none; text-shadow:0 3px 24px #02050a; }
 .hero h1 { margin:0; font-size:clamp(38px,4.8vw,70px); line-height:1.05; font-weight:500; letter-spacing:-.045em; }
-.stats { margin:18px 0 0; color:#94a0b2; font-size:clamp(15px,1.8vw,23px); }
+.stats { margin:17px 0 0; color:#9ea5b2; font-size:clamp(15px,1.8vw,23px); }
 .stats strong { color:var(--gold); font-weight:500; }
 .stats span { margin:0 12px; color:#657287; }
 .map-wrap { position:absolute; inset:0; cursor:grab; touch-action:none; }
@@ -28,23 +31,16 @@ canvas { display:block; width:100%; height:100%; }
 .hint span { margin-right:10px; }.hint b { margin:0 8px; color:#758196; }
 .tooltip { position:fixed; z-index:12; min-width:130px; padding:13px 16px; border:1px solid rgba(255,255,255,.2); border-radius:12px; background:rgba(5,12,22,.9); box-shadow:0 14px 40px rgba(0,0,0,.45); pointer-events:none; }
 .tooltip strong,.tooltip span { display:block; }.tooltip span { margin-top:5px; color:#96a1b2; font-size:13px; }
-.drawer { position:absolute; z-index:15; top:170px; right:24px; bottom:28px; width:290px; padding:54px 34px 30px; overflow:hidden; border:1px solid rgba(255,255,255,.2); border-radius:20px; background:linear-gradient(145deg,rgba(24,33,48,.93),rgba(6,15,26,.96)); box-shadow:0 25px 70px rgba(0,0,0,.42); backdrop-filter:blur(22px); transform:translateX(calc(100% + 40px)); opacity:0; transition:.38s cubic-bezier(.2,.75,.25,1); }
+.drawer { position:absolute; z-index:15; top:170px; right:10px; bottom:28px; width:min(290px,19vw); min-width:250px; padding:105px 42px 30px; overflow:hidden; border:1px solid rgba(255,255,255,.24); border-radius:20px; background:linear-gradient(145deg,rgba(23,32,47,.95),rgba(6,15,26,.98)); box-shadow:0 25px 70px rgba(0,0,0,.42); backdrop-filter:blur(22px); transform:translateX(calc(100% + 40px)); opacity:0; transition:.38s cubic-bezier(.2,.75,.25,1); }
 .drawer.open { transform:translateX(0); opacity:1; }
 .close { position:absolute; top:18px; right:20px; border:0; background:none; font-size:28px; font-weight:200; cursor:pointer; }
-.drawer-kicker { margin:0 0 28px; color:#71829a; font-size:9px; font-weight:700; letter-spacing:.24em; }
 .drawer h2 { margin:0; font-size:38px; font-weight:500; letter-spacing:-.04em; }
-.local-name { margin:8px 0 2px; color:#b7c4d7; font-size:19px; }
-.country { margin:0; color:#89a0c0; font-size:16px; }
-.mini-world { position:relative; height:150px; margin:28px -18px 20px; opacity:.72; }
-.mini-land { position:absolute; background:#65768a; opacity:.38; filter:blur(.2px); }
-.mini-land.one { left:10%; top:35%; width:30%; height:33%; border-radius:60% 40% 55% 45%; transform:rotate(14deg); }
-.mini-land.two { left:43%; top:26%; width:45%; height:30%; border-radius:45% 60% 38% 55%; transform:rotate(-5deg); }
-.mini-land.three { left:58%; top:58%; width:22%; height:21%; border-radius:55% 45%; }
+.country { margin:14px 0 0; color:#9db2d0; font-size:18px; }
+.mini-world { position:relative; height:150px; margin:30px -24px 20px; opacity:.58; background:url("/prototype-map.png") center / 245% auto no-repeat; filter:grayscale(1) brightness(.8); mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); }
 .mini-world i { position:absolute; width:7px; height:7px; border-radius:50%; background:#fff4c6; box-shadow:0 0 5px #fff,0 0 14px #ffae45,0 0 30px #ff8b24; transform:translate(-50%,-50%); }
-.memory-note { position:absolute; left:34px; right:34px; bottom:28px; padding-top:18px; border-top:1px solid rgba(255,255,255,.12); }
-.memory-note span,.memory-note strong { display:block; }.memory-note span { margin-bottom:7px; color:#708198; font-size:10px; text-transform:uppercase; letter-spacing:.13em; }.memory-note strong { color:#bdc7d4; font-size:12px; font-weight:400; line-height:1.5; }
 @media (max-width:700px) {
-  .hero { top:26px; width:92vw; }.eyebrow { display:none; }.hero h1 { font-size:35px; }.stats { margin-top:10px; font-size:14px; }.stats span { margin:0 5px; }
+  .experience { background-position:57% center; }.mask-header { left:0; right:0; height:120px; }.mask-drawer,.mask-tooltip { display:none; }
+  .hero { top:26px; width:92vw; }.hero h1 { font-size:35px; }.stats { margin-top:10px; font-size:14px; }.stats span { margin:0 5px; }
   .globe-button,.about-button { top:auto; bottom:25px; width:44px; height:44px; }.globe-button { left:18px; }.about-button { right:18px; }
   .map-controls,.scale { display:none; }.hint { bottom:25px; padding:11px 14px; font-size:12px; }
   .drawer { top:auto; left:14px; right:14px; bottom:14px; width:auto; height:46vh; padding:44px 28px 24px; transform:translateY(calc(100% + 30px)); }.drawer.open { transform:translateY(0); }

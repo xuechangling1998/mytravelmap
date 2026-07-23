@@ -36,17 +36,6 @@ const cities: City[] = [
   { name: "Dubai", local: "迪拜", country: "United Arab Emirates", lat: 25.20, lon: 55.27 },
 ];
 
-const land: [number, number][][] = [
-  [[-168,72],[-140,68],[-125,52],[-105,50],[-86,45],[-60,48],[-52,65],[-75,82],[-120,80]],
-  [[-82,12],[-72,-6],[-74,-24],[-64,-55],[-48,-40],[-36,-8],[-50,8]],
-  [[-10,72],[25,71],[45,60],[78,72],[115,72],[145,58],[180,66],[180,5],[145,8],[125,22],[105,4],[78,8],[55,26],[35,38],[14,36],[-5,54]],
-  [[-17,35],[8,37],[34,30],[52,12],[43,-12],[30,-35],[15,-35],[-3,-15],[-17,14]],
-  [[112,-11],[154,-10],[152,-40],[132,-43],[114,-28]],
-  [[-55,83],[-18,78],[-25,60],[-48,59]],
-  [[47,-13],[51,-26],[45,-25]],
-  [[166,-35],[178,-38],[174,-48],[168,-45]],
-];
-
 const project = (lon: number, lat: number, width: number, height: number) => ({
   x: ((lon + 180) / 360) * width,
   y: ((90 - lat) / 180) * height,
@@ -86,31 +75,6 @@ export default function Home() {
     ctx.translate(width / 2 + t.x, height / 2 + t.y);
     ctx.scale(t.scale, t.scale);
     ctx.translate(-width / 2, -height / 2);
-
-    const ocean = ctx.createRadialGradient(width * .62, height * .48, 0, width * .62, height * .48, width * .75);
-    ocean.addColorStop(0, "rgba(18,44,72,.34)");
-    ocean.addColorStop(1, "rgba(3,11,22,0)");
-    ctx.fillStyle = ocean;
-    ctx.fillRect(0, 0, width, height);
-
-    land.forEach((poly) => {
-      ctx.beginPath();
-      poly.forEach(([lon, lat], index) => {
-        const p = project(lon, lat, mapW, mapH);
-        const x = baseX + p.x;
-        const y = baseY + p.y;
-        index ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
-      });
-      ctx.closePath();
-      const shade = ctx.createLinearGradient(0, baseY, 0, baseY + mapH);
-      shade.addColorStop(0, "#20334a");
-      shade.addColorStop(1, "#101e2f");
-      ctx.fillStyle = shade;
-      ctx.fill();
-      ctx.strokeStyle = "rgba(126,154,184,.28)";
-      ctx.lineWidth = .7;
-      ctx.stroke();
-    });
 
     ctx.save();
     ctx.globalCompositeOperation = "screen";
@@ -174,10 +138,12 @@ export default function Home() {
 
   return (
     <main className="experience" onClick={() => selected && setSelected(null)}>
+      <div className="prototype-mask mask-header" />
+      <div className="prototype-mask mask-drawer" />
+      <div className="prototype-mask mask-tooltip" />
       <header className="hero">
-        <p className="eyebrow">PERSONAL TRAVEL ARCHIVE</p>
         <h1>The World I’ve Explored</h1>
-        <p className="stats"><strong>5</strong> Countries <span>·</span> <strong>23</strong> Cities <span>·</span> <strong>42</strong> Flights</p>
+        <p className="stats"><strong>5</strong> Countries <span>·</span> <strong>23</strong> Cities</p>
       </header>
 
       <button className="globe-button" aria-label="Reset world map" onClick={(event) => { event.stopPropagation(); reset(); }}>◎</button>
@@ -233,15 +199,11 @@ export default function Home() {
         <button className="close" aria-label="Close city details" onClick={() => setSelected(null)}>×</button>
         {selected && (
           <>
-            <p className="drawer-kicker">EXPLORED CITY</p>
             <h2>{selected.name}</h2>
-            <p className="local-name">{selected.local}</p>
             <p className="country">{selected.country}</p>
             <div className="mini-world" aria-hidden="true">
-              <div className="mini-land one" /><div className="mini-land two" /><div className="mini-land three" />
               <i style={{ left: `${(selected.lon + 180) / 3.6}%`, top: `${(90 - selected.lat) / 1.8}%` }} />
             </div>
-            <div className="memory-note"><span>Part of your story</span><strong>Every light is somewhere you’ve been.</strong></div>
           </>
         )}
       </aside>
