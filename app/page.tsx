@@ -37,13 +37,14 @@ const cities: City[] = [
 ];
 
 const project = (lon: number, lat: number, width: number, height: number) => ({
-  x: (.288 + lon * .002847) * width,
-  y: (.587 - lat * .004298) * height,
+  x: (.371 + lon * .00207) * width,
+  y: (.615 - lat * .0049) * height,
 });
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const surfaceRef = useRef<HTMLDivElement>(null);
   const transform = useRef({ scale: 1, x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
   const [hovered, setHovered] = useState<City | null>(null);
@@ -67,6 +68,9 @@ export default function Home() {
     ctx.clearRect(0, 0, width, height);
 
     const t = transform.current;
+    if (surfaceRef.current) {
+      surfaceRef.current.style.transform = `translate(${t.x}px, ${t.y}px) scale(${t.scale})`;
+    }
     ctx.save();
     ctx.translate(width / 2 + t.x, height / 2 + t.y);
     ctx.scale(t.scale, t.scale);
@@ -130,8 +134,6 @@ export default function Home() {
 
   return (
     <main className="experience" onClick={() => selected && setSelected(null)}>
-      <div className="prototype-mask mask-header" />
-      <div className="prototype-mask mask-drawer" />
       <header className="hero">
         <h1>The World I’ve Explored</h1>
         <p className="stats"><strong>5</strong> Countries <span>·</span> <strong>23</strong> Cities</p>
@@ -167,6 +169,10 @@ export default function Home() {
         onPointerLeave={() => { drag.current = null; setHovered(null); }}
         onWheel={(event) => { event.preventDefault(); zoom(event.deltaY < 0 ? 1.12 : .89); }}
       >
+        <div className="map-surface" ref={surfaceRef} aria-hidden="true">
+          <div className="prototype-mask mask-header" />
+          <div className="prototype-mask mask-drawer" />
+        </div>
         <canvas ref={canvasRef} aria-label="Interactive map of visited cities" />
       </div>
 
@@ -186,9 +192,9 @@ export default function Home() {
       <div className="scale"><span>2,000 km</span><i /></div>
       <div className="hint"><span>↖</span> Drag to explore <b>·</b> Scroll to zoom</div>
 
-      <aside className={`drawer ${selected ? "open" : ""}`} onClick={(event) => event.stopPropagation()} aria-hidden={!selected}>
+      <aside className="drawer open" onClick={(event) => event.stopPropagation()}>
         <button className="close" aria-label="Close city details" onClick={() => setSelected(null)}>×</button>
-        {selected && (
+        {selected ? (
           <>
             <h2>{selected.name}</h2>
             <p className="country">{selected.country}</p>
@@ -196,6 +202,12 @@ export default function Home() {
               <i style={{ left: `${(selected.lon + 180) / 3.6}%`, top: `${(90 - selected.lat) / 1.8}%` }} />
             </div>
           </>
+        ) : (
+          <div className="empty-drawer">
+            <h2>No city selected</h2>
+            <p>Click on a city to see details</p>
+            <div className="mini-world empty" aria-hidden="true" />
+          </div>
         )}
       </aside>
     </main>
