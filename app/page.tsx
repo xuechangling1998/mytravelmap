@@ -59,8 +59,11 @@ export default function Home() {
           event.currentTarget.setPointerCapture(event.pointerId);
         }}
         onPointerMove={(event) => {
-          if (!drag.current) return;
-          setView((v) => ({ ...v, x: drag.current!.ox + event.clientX - drag.current!.x, y: drag.current!.oy + event.clientY - drag.current!.y }));
+          const activeDrag = drag.current;
+          if (!activeDrag) return;
+          const nextX = activeDrag.ox + event.clientX - activeDrag.x;
+          const nextY = activeDrag.oy + event.clientY - activeDrag.y;
+          setView((v) => ({ ...v, x: nextX, y: nextY }));
         }}
         onPointerUp={() => { drag.current = null; }}
         onPointerCancel={() => { drag.current = null; }}
