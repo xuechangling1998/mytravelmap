@@ -37,8 +37,10 @@ const cities: City[] = [
 ];
 
 const project = (lon: number, lat: number, width: number, height: number) => ({
-  x: (.371 + lon * .00207) * width,
-  y: (.615 - lat * .0049) * height,
+  // Calibrated against the actual map bounds in the final 1402×1122 prototype.
+  // The drawable world spans x≈0–1100 and the equator sits at y≈655.
+  x: (.3923 + lon * .00218) * width,
+  y: (.5838 - lat * .0041) * height,
 });
 
 export default function Home() {
