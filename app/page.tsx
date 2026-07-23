@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import maplibregl, { type Map as MapLibreMap, type GeoJSONSource } from "maplibre-gl";
+import maplibregl, { type Map as MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 type City = { name: string; local: string; country: string; lat: number; lon: number };
@@ -60,79 +60,63 @@ export default function Home() {
       style: {
         version: 8,
         sources: {
-          dark: {
-            type: "raster",
-            tiles: [
-              "https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}@2x.png",
-              "https://b.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}@2x.png",
-            ],
-            tileSize: 256,
-            attribution: "© OpenStreetMap contributors © CARTO",
+          world: {
+            type: "image",
+            url: "/world-offline.png",
+            coordinates: [[-180, 82], [180, 82], [180, -60], [-180, -60]],
           },
+          "visited-cities": { type: "geojson", data: cityGeoJSON },
         },
-        layers: [{ id: "dark-map", type: "raster", source: "dark", paint: { "raster-opacity": 0.88, "raster-saturation": -0.72, "raster-contrast": 0.18 } }],
+        layers: [
+          { id: "ocean", type: "background", paint: { "background-color": "#020a14" } },
+          { id: "world-map", type: "raster", source: "world", paint: { "raster-opacity": 0.96 } },
+          {
+            id: "city-halo", type: "circle", source: "visited-cities",
+            paint: {
+              "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 12, 5, 20],
+              "circle-color": "#ff9f2e", "circle-opacity": 0.2, "circle-blur": 1,
+            },
+          },
+          {
+            id: "city-glow", type: "circle", source: "visited-cities",
+            paint: {
+              "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 6, 5, 10],
+              "circle-color": "#ffb340", "circle-opacity": 0.54, "circle-blur": 0.72,
+            },
+          },
+          {
+            id: "city-core", type: "circle", source: "visited-cities",
+            paint: {
+              "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 2.5, 5, 4],
+              "circle-color": "#fff6c9", "circle-stroke-color": "#ffb13b", "circle-stroke-width": 1.4,
+            },
+          },
+        ],
       },
     });
     mapRef.current = map;
 
-    map.on("load", () => {
-      map.addSource("visited-cities", { type: "geojson", data: cityGeoJSON });
-      map.addLayer({
-        id: "city-halo",
-        type: "circle",
-        source: "visited-cities",
-        paint: {
-          "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 12, 5, 20],
-          "circle-color": "#ff9f2e",
-          "circle-opacity": 0.18,
-          "circle-blur": 1,
-        },
-      });
-      map.addLayer({
-        id: "city-glow",
-        type: "circle",
-        source: "visited-cities",
-        paint: {
-          "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 6, 5, 10],
-          "circle-color": "#ffb340",
-          "circle-opacity": 0.48,
-          "circle-blur": 0.72,
-        },
-      });
-      map.addLayer({
-        id: "city-core",
-        type: "circle",
-        source: "visited-cities",
-        paint: {
-          "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 2.3, 5, 4],
-          "circle-color": "#fff6c9",
-          "circle-stroke-color": "#ffb13b",
-          "circle-stroke-width": 1.4,
-        },
-      });
-
-      const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 13, className: "city-popup" });
-      map.on("mouseenter", "city-core", (event) => {
-        map.getCanvas().style.cursor = "pointer";
-        const feature = event.features?.[0];
-        if (!feature || feature.geometry.type !== "Point") return;
-        popup
-          .setLngLat(feature.geometry.coordinates as [number, number])
-          .setHTML(`<strong>${feature.properties?.name}</strong><span>${feature.properties?.country}</span>`)
-          .addTo(map);
-      });
-      map.on("mouseleave", "city-core", () => {
-        map.getCanvas().style.cursor = "";
-        popup.remove();
-      });
-      map.on("click", "city-core", (event) => {
-        const index = Number(event.features?.[0]?.properties?.index);
-        if (Number.isInteger(index)) setSelected(cities[index]);
-      });
-      map.on("click", (event) => {
-        const hit = map.queryRenderedFeatures(event.point, { layers: ["city-core"] });
-        if (!hit.length) setSelected(null);
-      });
+    const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 13, className: "city-popup" });
+    map.on("mouseenter", "city-core", (event) => {
+      map.getCanvas().style.cursor = "pointer";
+      const feature = event.features?.[0];
+      if (!feature || feature.geometry.type !== "Point") return;
+      popup
+        .setLngLat(feature.geometry.coordinates as [number, number])
+        .setHTML(`<strong>${feature.properties?.name}</strong><span>${feature.properties?.country}</span>`)
+        .addTo(map);
+    });
+    map.on("mouseleave", "city-core", () => {
+      map.getCanvas().style.cursor = "";
+      popup.remove();
+    });
+    map.on("click", "city-core", (event) => {
+      const index = Number(event.features?.[0]?.properties?.index);
+      if (Number.isInteger(index)) setSelected(cities[index]);
+    });
+    map.on("click", (event) => {
+      const hit = map.queryRenderedFeatures(event.point, { layers: ["city-core"] });
+      if (!hit.length) setSelected(null);
     });
 
     return () => {
