@@ -14,6 +14,8 @@ const countryNames: Record<string, string> = {
   Türkiye: "土耳其",
   "United Arab Emirates": "阿联酋",
   "New Zealand": "新西兰",
+  Finland: "芬兰",
+  Norway: "挪威",
 };
 
 const cities: City[] = [
@@ -34,6 +36,7 @@ const cities: City[] = [
   { name: "Ürümqi", local: "乌鲁木齐", country: "China", lat: 43.8256, lon: 87.6168 },
   { name: "Yining", local: "伊宁", country: "China", lat: 43.9771, lon: 81.5275 },
   { name: "Altay", local: "阿勒泰", country: "China", lat: 47.8484, lon: 88.1396 },
+  { name: "Zunyi", local: "遵义", country: "China", lat: 27.7257, lon: 106.9272 },
   { name: "Tokyo", local: "东京", country: "Japan", lat: 35.6762, lon: 139.6503 },
   { name: "Osaka", local: "大阪", country: "Japan", lat: 34.6937, lon: 135.5023 },
   { name: "Kota Kinabalu", local: "哥打京那巴鲁", country: "Malaysia", lat: 5.9804, lon: 116.0735 },
@@ -43,9 +46,13 @@ const cities: City[] = [
 ];
 
 const upcomingCities: City[] = [
-  { name: "Zunyi", local: "遵义", country: "China", lat: 27.7257, lon: 106.9272 },
   { name: "Auckland", local: "奥克兰", country: "New Zealand", lat: -36.8509, lon: 174.7645 },
   { name: "Christchurch", local: "基督城", country: "New Zealand", lat: -43.5321, lon: 172.6362 },
+  { name: "Helsinki", local: "赫尔辛基", country: "Finland", lat: 60.1699, lon: 24.9384 },
+  { name: "Oslo", local: "奥斯陆", country: "Norway", lat: 59.9139, lon: 10.7522 },
+  { name: "Bodø", local: "博德", country: "Norway", lat: 67.2804, lon: 14.4049 },
+  { name: "Svolvær", local: "斯沃尔韦尔", country: "Norway", lat: 68.2343, lon: 14.5683 },
+  { name: "Tromsø", local: "特罗姆瑟", country: "Norway", lat: 69.6492, lon: 18.9553 },
 ];
 
 const MAP_W = 1100;
@@ -152,7 +159,7 @@ export default function Home() {
 
       <header className="hero">
         <h1>The World I’ve Explored</h1>
-        <p><strong>5</strong> Countries <span>·</span> <strong>23</strong> Cities</p>
+        <p><strong>5</strong> Countries <span>·</span> <strong>24</strong> Cities</p>
       </header>
 
       <nav className="map-controls" aria-label="Map controls">
