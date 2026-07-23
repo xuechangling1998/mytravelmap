@@ -37,8 +37,8 @@ const cities: City[] = [
 ];
 
 const project = (lon: number, lat: number, width: number, height: number) => ({
-  x: ((lon + 180) / 360) * width,
-  y: ((90 - lat) / 180) * height,
+  x: (.288 + lon * .002847) * width,
+  y: (.587 - lat * .004298) * height,
 });
 
 export default function Home() {
@@ -66,10 +66,6 @@ export default function Home() {
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, width, height);
 
-    const mapW = Math.max(width, height * 1.86);
-    const mapH = mapW / 2;
-    const baseX = (width - mapW) / 2;
-    const baseY = (height - mapH) / 2 + 24;
     const t = transform.current;
     ctx.save();
     ctx.translate(width / 2 + t.x, height / 2 + t.y);
@@ -79,9 +75,9 @@ export default function Home() {
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     cities.forEach((city) => {
-      const p = project(city.lon, city.lat, mapW, mapH);
-      const x = baseX + p.x;
-      const y = baseY + p.y;
+      const p = project(city.lon, city.lat, width, height);
+      const x = p.x;
+      const y = p.y;
       const glow = ctx.createRadialGradient(x, y, 0, x, y, 15);
       glow.addColorStop(0, "rgba(255,255,224,1)");
       glow.addColorStop(.12, "rgba(255,190,78,.95)");
@@ -113,16 +109,12 @@ export default function Home() {
     const rect = wrap.getBoundingClientRect();
     const width = wrap.clientWidth;
     const height = wrap.clientHeight;
-    const mapW = Math.max(width, height * 1.86);
-    const mapH = mapW / 2;
-    const baseX = (width - mapW) / 2;
-    const baseY = (height - mapH) / 2 + 24;
     const t = transform.current;
     const mx = (clientX - rect.left - width / 2 - t.x) / t.scale + width / 2;
     const my = (clientY - rect.top - height / 2 - t.y) / t.scale + height / 2;
     return cities.find((city) => {
-      const p = project(city.lon, city.lat, mapW, mapH);
-      return Math.hypot(baseX + p.x - mx, baseY + p.y - my) < 12;
+      const p = project(city.lon, city.lat, width, height);
+      return Math.hypot(p.x - mx, p.y - my) < 12;
     }) ?? null;
   };
 
@@ -140,7 +132,6 @@ export default function Home() {
     <main className="experience" onClick={() => selected && setSelected(null)}>
       <div className="prototype-mask mask-header" />
       <div className="prototype-mask mask-drawer" />
-      <div className="prototype-mask mask-tooltip" />
       <header className="hero">
         <h1>The World I’ve Explored</h1>
         <p className="stats"><strong>5</strong> Countries <span>·</span> <strong>23</strong> Cities</p>

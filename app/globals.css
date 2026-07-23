@@ -8,9 +8,8 @@ button { color:inherit; font:inherit; }
 .experience { position:relative; width:100vw; height:100dvh; overflow:hidden; background:#020912 url("/prototype-map.png") center center / cover no-repeat; }
 .experience::after { content:""; position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 180px rgba(0,0,0,.72); }
 .prototype-mask { position:absolute; z-index:2; pointer-events:none; background:#030a14; }
-.mask-header { left:17%; right:18%; top:0; height:148px; background:linear-gradient(180deg,#030a14 0%,#030a14 78%,rgba(3,10,20,0) 100%); }
-.mask-drawer { right:0; top:0; bottom:0; width:20%; background:linear-gradient(90deg,rgba(3,10,20,.15),#030a14 12%); }
-.mask-tooltip { left:67.5%; top:43%; width:11%; height:14%; border-radius:22px; background:radial-gradient(ellipse at 20% 50%,#0b1727 0,#071321 58%,rgba(4,12,22,.5) 76%,transparent 100%); }
+.mask-header { left:22%; right:22%; top:0; height:176px; background:linear-gradient(180deg,#030a14 0%,#030a14 82%,rgba(3,10,20,0) 100%); }
+.mask-drawer { right:0; top:0; bottom:0; width:22%; background:linear-gradient(90deg,rgba(3,10,20,.1),#030a14 8%); }
 .hero { position:absolute; z-index:5; left:50%; top:42px; transform:translateX(-50%); width:min(820px,80vw); text-align:center; pointer-events:none; text-shadow:0 3px 24px #02050a; }
 .hero h1 { margin:0; font-size:clamp(38px,4.8vw,70px); line-height:1.05; font-weight:500; letter-spacing:-.045em; }
 .stats { margin:17px 0 0; color:#9ea5b2; font-size:clamp(15px,1.8vw,23px); }
