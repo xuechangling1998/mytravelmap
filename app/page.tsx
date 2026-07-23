@@ -13,6 +13,7 @@ const countryNames: Record<string, string> = {
   Malaysia: "马来西亚",
   Türkiye: "土耳其",
   "United Arab Emirates": "阿联酋",
+  "New Zealand": "新西兰",
 };
 
 const cities: City[] = [
@@ -39,6 +40,12 @@ const cities: City[] = [
   { name: "Tawau", local: "斗湖", country: "Malaysia", lat: 4.2448, lon: 117.8912 },
   { name: "Istanbul", local: "伊斯坦布尔", country: "Türkiye", lat: 41.0082, lon: 28.9784 },
   { name: "Dubai", local: "迪拜", country: "United Arab Emirates", lat: 25.2048, lon: 55.2708 },
+];
+
+const upcomingCities: City[] = [
+  { name: "Zunyi", local: "遵义", country: "China", lat: 27.7257, lon: 106.9272 },
+  { name: "Auckland", local: "奥克兰", country: "New Zealand", lat: -36.8509, lon: 174.7645 },
+  { name: "Christchurch", local: "基督城", country: "New Zealand", lat: -43.5321, lon: 172.6362 },
 ];
 
 const MAP_W = 1100;
@@ -116,6 +123,28 @@ export default function Home() {
                   </g>
                 );
               })}
+              {upcomingCities.map((city) => {
+                const point = projection([city.lon, city.lat]);
+                if (!point) return null;
+                return (
+                  <g
+                    key={city.name}
+                    className="city-node upcoming"
+                    transform={`translate(${point[0]} ${point[1]})`}
+                    aria-label={`${city.local}，${countryNames[city.country]}，即将点亮`}
+                    onPointerDown={(event) => event.stopPropagation()}
+                  >
+                    <circle className="hit" r="12" />
+                    <circle className="halo" r="8" />
+                    <circle className="core" r="2.8" />
+                    <g className="city-label">
+                      <rect x="12" y="-20" width="128" height="39" rx="7" />
+                      <text x="22" y="-5">{city.local}</text>
+                      <text className="sub" x="22" y="10">{countryNames[city.country]} · 即将点亮</text>
+                    </g>
+                  </g>
+                );
+              })}
             </g>
           </svg>
         </div>
@@ -133,6 +162,10 @@ export default function Home() {
       </nav>
       <div className="scale"><span>2,000 km</span><i /></div>
       <div className="hint"><span>↖</span> Drag to explore <b>·</b> Scroll to zoom</div>
+      <div className="legend" aria-label="地图图例">
+        <span><i className="visited-dot" />已经点亮</span>
+        <span><i className="upcoming-dot" />即将点亮</span>
+      </div>
     </main>
   );
 }

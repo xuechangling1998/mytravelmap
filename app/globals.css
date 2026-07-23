@@ -16,6 +16,8 @@ button { color:inherit; font:inherit; }
 .city-node .hit { fill:transparent; }
 .city-node .halo { fill:#ff9f2f; opacity:.65; filter:url("#glow"); }
 .city-node .core { fill:#fff8d2; stroke:#ffae35; stroke-width:1.2; vector-effect:non-scaling-stroke; }
+.city-node.upcoming .halo { fill:#58c7ff; opacity:.55; filter:drop-shadow(0 0 7px rgba(72,190,255,.9)); }
+.city-node.upcoming .core { fill:#dff7ff; stroke:#55c8ff; }
 .city-label { display:none; pointer-events:none; }
 .city-node:hover .city-label,.city-node:focus .city-label { display:block; }
 .city-label rect { fill:rgba(5,12,22,.94); stroke:rgba(255,255,255,.2); stroke-width:.7; }
@@ -29,7 +31,9 @@ button { color:inherit; font:inherit; }
 .scale { position:absolute; z-index:6; left:28px; bottom:30px; width:140px; padding:8px 10px; font-size:13px; text-shadow:0 2px 10px #000; }
 .scale i { display:block; width:105px; height:8px; margin-top:4px; border:solid #d4d9df; border-width:0 1px 1px; }
 .hint { position:absolute; z-index:6; left:50%; bottom:30px; transform:translateX(-50%); padding:13px 20px; border:1px solid rgba(255,255,255,.17); border-radius:14px; background:rgba(8,16,27,.86); backdrop-filter:blur(16px); white-space:nowrap; font-size:14px; }.hint span{margin-right:10px}.hint b{margin:0 8px;color:#758196}
+.legend { position:absolute; z-index:6; right:28px; bottom:31px; display:flex; gap:17px; padding:11px 15px; border:1px solid rgba(255,255,255,.14); border-radius:12px; background:rgba(8,16,27,.78); color:#aab4c2; font-size:12px; backdrop-filter:blur(14px); }
+.legend span{display:flex;align-items:center;gap:8px}.legend i{width:7px;height:7px;border-radius:50%}.visited-dot{background:#fff0bb;box-shadow:0 0 8px #ff9d28}.upcoming-dot{background:#dff7ff;box-shadow:0 0 8px #55c8ff}
 @media(max-width:700px){
   .hero{top:25px;width:94vw}.hero h1{font-size:34px}.hero p{margin-top:10px;font-size:14px}.hero span{margin:0 5px}
-  .map-plane{left:0;top:13%;width:100%}.map-controls,.scale{display:none}.hint{bottom:18px;font-size:11px;padding:10px 13px}
+  .map-plane{left:0;top:13%;width:100%}.map-controls,.scale{display:none}.hint{bottom:18px;font-size:11px;padding:10px 13px}.legend{right:12px;bottom:64px}
 }
