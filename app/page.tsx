@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import maplibregl, { type Map as MapLibreMap } from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
+import { useRef, useState } from "react";
 
 type City = { name: string; local: string; country: string; lat: number; lon: number };
 
@@ -32,105 +30,53 @@ const cities: City[] = [
   { name: "Dubai", local: "迪拜", country: "United Arab Emirates", lat: 25.2048, lon: 55.2708 },
 ];
 
-const cityGeoJSON: GeoJSON.FeatureCollection = {
-  type: "FeatureCollection",
-  features: cities.map((city, index) => ({
-    type: "Feature",
-    id: index,
-    geometry: { type: "Point", coordinates: [city.lon, city.lat] },
-    properties: { index, name: city.name, country: city.country },
-  })),
-};
+// Projection calibrated directly to public/world-offline.png (1100 × 830).
+const position = (city: City) => ({
+  left: `${((550 + city.lon * 3.05) / 1100) * 100}%`,
+  top: `${((505 - city.lat * 5.3) / 830) * 100}%`,
+});
 
 export default function Home() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MapLibreMap | null>(null);
   const [selected, setSelected] = useState<City | null>(null);
+  const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
+  const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
 
-  useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      center: [20, 23],
-      zoom: 1.25,
-      minZoom: 0.8,
-      maxZoom: 8,
-      attributionControl: false,
-      renderWorldCopies: false,
-      style: {
-        version: 8,
-        sources: {
-          world: {
-            type: "image",
-            url: "/world-offline.png",
-            coordinates: [[-180, 82], [180, 82], [180, -60], [-180, -60]],
-          },
-          "visited-cities": { type: "geojson", data: cityGeoJSON },
-        },
-        layers: [
-          { id: "ocean", type: "background", paint: { "background-color": "#020a14" } },
-          { id: "world-map", type: "raster", source: "world", paint: { "raster-opacity": 0.96 } },
-          {
-            id: "city-halo", type: "circle", source: "visited-cities",
-            paint: {
-              "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 12, 5, 20],
-              "circle-color": "#ff9f2e", "circle-opacity": 0.2, "circle-blur": 1,
-            },
-          },
-          {
-            id: "city-glow", type: "circle", source: "visited-cities",
-            paint: {
-              "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 6, 5, 10],
-              "circle-color": "#ffb340", "circle-opacity": 0.54, "circle-blur": 0.72,
-            },
-          },
-          {
-            id: "city-core", type: "circle", source: "visited-cities",
-            paint: {
-              "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 2.5, 5, 4],
-              "circle-color": "#fff6c9", "circle-stroke-color": "#ffb13b", "circle-stroke-width": 1.4,
-            },
-          },
-        ],
-      },
-    });
-    mapRef.current = map;
-
-    const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 13, className: "city-popup" });
-    map.on("mouseenter", "city-core", (event) => {
-      map.getCanvas().style.cursor = "pointer";
-      const feature = event.features?.[0];
-      if (!feature || feature.geometry.type !== "Point") return;
-      popup
-        .setLngLat(feature.geometry.coordinates as [number, number])
-        .setHTML(`<strong>${feature.properties?.name}</strong><span>${feature.properties?.country}</span>`)
-        .addTo(map);
-    });
-    map.on("mouseleave", "city-core", () => {
-      map.getCanvas().style.cursor = "";
-      popup.remove();
-    });
-    map.on("click", "city-core", (event) => {
-      const index = Number(event.features?.[0]?.properties?.index);
-      if (Number.isInteger(index)) setSelected(cities[index]);
-    });
-    map.on("click", (event) => {
-      const hit = map.queryRenderedFeatures(event.point, { layers: ["city-core"] });
-      if (!hit.length) setSelected(null);
-    });
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, []);
-
-  const zoom = (delta: number) => mapRef.current?.easeTo({ zoom: mapRef.current.getZoom() + delta, duration: 280 });
-  const reset = () => mapRef.current?.easeTo({ center: [20, 23], zoom: 1.25, duration: 500 });
+  const zoom = (factor: number) => setView((v) => ({ ...v, scale: Math.max(1, Math.min(4, v.scale * factor)) }));
+  const reset = () => setView({ scale: 1, x: 0, y: 0 });
 
   return (
-    <main className="experience">
-      <div className="map" ref={containerRef} />
+    <main className="experience" onClick={() => setSelected(null)}>
+      <div
+        className="map-viewport"
+        onPointerDown={(event) => {
+          drag.current = { x: event.clientX, y: event.clientY, ox: view.x, oy: view.y };
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          if (!drag.current) return;
+          setView((v) => ({ ...v, x: drag.current!.ox + event.clientX - drag.current!.x, y: drag.current!.oy + event.clientY - drag.current!.y }));
+        }}
+        onPointerUp={() => { drag.current = null; }}
+        onPointerCancel={() => { drag.current = null; }}
+        onWheel={(event) => { event.preventDefault(); zoom(event.deltaY < 0 ? 1.12 : .89); }}
+      >
+        <div className="map-plane" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>
+          <img src="/world-offline.png" alt="" draggable={false} />
+          {cities.map((city) => (
+            <button
+              key={city.name}
+              className="city-light"
+              style={position(city)}
+              aria-label={`${city.name}, ${city.country}`}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => { event.stopPropagation(); setSelected(city); }}
+            >
+              <i />
+              <span><strong>{city.name}</strong><small>{city.country}</small></span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <header className="hero">
         <h1>The World I’ve Explored</h1>
@@ -138,22 +84,20 @@ export default function Home() {
       </header>
 
       <nav className="map-controls" aria-label="Map controls">
-        <button aria-label="Zoom in" onClick={() => zoom(1)}>+</button>
-        <button aria-label="Zoom out" onClick={() => zoom(-1)}>−</button>
-        <button aria-label="Reset map" onClick={reset}>⌖</button>
+        <button aria-label="Zoom in" onClick={(event) => { event.stopPropagation(); zoom(1.25); }}>+</button>
+        <button aria-label="Zoom out" onClick={(event) => { event.stopPropagation(); zoom(.8); }}>−</button>
+        <button aria-label="Reset map" onClick={(event) => { event.stopPropagation(); reset(); }}>⌖</button>
       </nav>
-
       <div className="scale"><span>2,000 km</span><i /></div>
       <div className="hint"><span>↖</span> Drag to explore <b>·</b> Scroll to zoom</div>
 
-      <aside className="drawer">
+      <aside className="drawer" onClick={(event) => event.stopPropagation()}>
         <button className="close" aria-label="Clear city selection" onClick={() => setSelected(null)}>×</button>
         {selected ? (
           <>
             <h2>{selected.name}</h2>
             <p className="country">{selected.country}</p>
             <p className="local">{selected.local}</p>
-            <div className="coordinate">{selected.lat.toFixed(4)}° N · {selected.lon.toFixed(4)}° E</div>
           </>
         ) : (
           <div className="empty">
@@ -162,7 +106,7 @@ export default function Home() {
           </div>
         )}
         <div className="mini-map" aria-hidden="true">
-          {selected && <i style={{ left: `${(selected.lon + 180) / 3.6}%`, top: `${(90 - selected.lat) / 1.8}%` }} />}
+          {selected && <i style={position(selected)} />}
         </div>
       </aside>
     </main>
