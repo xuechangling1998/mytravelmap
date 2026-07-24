@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "The World I’ve Explored",
-  description: "A personal map of 42 flights and 23 cities explored across the world.",
+  description: "Import your flight history and turn every journey into a personal travel map.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

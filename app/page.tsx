@@ -1,57 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import world from "world-atlas/countries-110m.json";
-
-type City = { name: string; local: string; country: string; lat: number; lon: number };
-
-const countryNames: Record<string, string> = {
-  China: "中国",
-  Japan: "日本",
-  Malaysia: "马来西亚",
-  Türkiye: "土耳其",
-  "New Zealand": "新西兰",
-  Finland: "芬兰",
-  Norway: "挪威",
-};
-
-const cities: City[] = [
-  { name: "Shenzhen", local: "深圳", country: "China", lat: 22.5431, lon: 114.0579 },
-  { name: "Guangzhou", local: "广州", country: "China", lat: 23.1291, lon: 113.2644 },
-  { name: "Hong Kong", local: "香港", country: "China", lat: 22.3193, lon: 114.1694 },
-  { name: "Shanghai", local: "上海", country: "China", lat: 31.2304, lon: 121.4737 },
-  { name: "Beijing", local: "北京", country: "China", lat: 39.9042, lon: 116.4074 },
-  { name: "Harbin", local: "哈尔滨", country: "China", lat: 45.8038, lon: 126.5349 },
-  { name: "Jiamusi", local: "佳木斯", country: "China", lat: 46.7998, lon: 130.3189 },
-  { name: "Shenyang", local: "沈阳", country: "China", lat: 41.8057, lon: 123.4315 },
-  { name: "Qingdao", local: "青岛", country: "China", lat: 36.0671, lon: 120.3826 },
-  { name: "Xi’an", local: "西安", country: "China", lat: 34.3416, lon: 108.9398 },
-  { name: "Chengdu", local: "成都", country: "China", lat: 30.5728, lon: 104.0668 },
-  { name: "Chongqing", local: "重庆", country: "China", lat: 29.563, lon: 106.5516 },
-  { name: "Guiyang", local: "贵阳", country: "China", lat: 26.647, lon: 106.6302 },
-  { name: "Kunming", local: "昆明", country: "China", lat: 25.0389, lon: 102.7183 },
-  { name: "Ürümqi", local: "乌鲁木齐", country: "China", lat: 43.8256, lon: 87.6168 },
-  { name: "Yining", local: "伊宁", country: "China", lat: 43.9771, lon: 81.5275 },
-  { name: "Altay", local: "阿勒泰", country: "China", lat: 47.8484, lon: 88.1396 },
-  { name: "Zunyi", local: "遵义", country: "China", lat: 27.7257, lon: 106.9272 },
-  { name: "Tokyo", local: "东京", country: "Japan", lat: 35.6762, lon: 139.6503 },
-  { name: "Osaka", local: "大阪", country: "Japan", lat: 34.6937, lon: 135.5023 },
-  { name: "Kota Kinabalu", local: "哥打京那巴鲁", country: "Malaysia", lat: 5.9804, lon: 116.0735 },
-  { name: "Tawau", local: "斗湖", country: "Malaysia", lat: 4.2448, lon: 117.8912 },
-  { name: "Istanbul", local: "伊斯坦布尔", country: "Türkiye", lat: 41.0082, lon: 28.9784 },
-];
-
-const upcomingCities: City[] = [
-  { name: "Auckland", local: "奥克兰", country: "New Zealand", lat: -36.8509, lon: 174.7645 },
-  { name: "Christchurch", local: "基督城", country: "New Zealand", lat: -43.5321, lon: 172.6362 },
-  { name: "Helsinki", local: "赫尔辛基", country: "Finland", lat: 60.1699, lon: 24.9384 },
-  { name: "Oslo", local: "奥斯陆", country: "Norway", lat: 59.9139, lon: 10.7522 },
-  { name: "Bodø", local: "博德", country: "Norway", lat: 67.2804, lon: 14.4049 },
-  { name: "Svolvær", local: "斯沃尔韦尔", country: "Norway", lat: 68.2343, lon: 14.5683 },
-  { name: "Tromsø", local: "特罗姆瑟", country: "Norway", lat: 69.6492, lon: 18.9553 },
-];
+import {
+  City,
+  countryNames,
+  defaultUpcomingCities,
+  defaultVisitedCities,
+  findKnownCity,
+  normalizeAirport,
+  uniqueCities,
+} from "./locations";
 
 const MAP_W = 1100;
 const MAP_H = 650;
@@ -62,12 +23,177 @@ const countries = feature(
 const projection = geoNaturalEarth1().fitExtent([[18, 18], [MAP_W - 18, MAP_H - 18]], countries);
 const path = geoPath(projection);
 
+type TripRow = Record<string, string | number | Date>;
+
+function endpoints(rows: TripRow[]) {
+  return rows.flatMap((row) => [row["出发城市"], row["到达城市"]])
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean);
+}
+
+function displayCountry(city: City) {
+  return countryNames[city.country] ?? city.country;
+}
+
+function cityKey(city: City) {
+  return `${city.local}|${city.country}`;
+}
+
+async function geocodeAirport(airport: string): Promise<City | null> {
+  const cacheKey = `travel-map:geocode:${normalizeAirport(airport)}`;
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) return JSON.parse(cached) as City;
+
+  const params = new URLSearchParams({
+    q: `${airport} 机场`,
+    format: "jsonv2",
+    addressdetails: "1",
+    limit: "1",
+    "accept-language": "zh-CN",
+  });
+  const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
+  if (!response.ok) return null;
+  const [match] = await response.json() as Array<{
+    lat: string;
+    lon: string;
+    display_name: string;
+    address?: Record<string, string>;
+  }>;
+  if (!match) return null;
+
+  const address = match.address ?? {};
+  const local = address.city || address.town || address.municipality || address.county
+    || airport.replace(/(国际机场|机场|国际)$/g, "");
+  const city: City = {
+    name: airport,
+    local,
+    country: address.country || match.display_name.split(",").at(-1)?.trim() || "未知",
+    lat: Number(match.lat),
+    lon: Number(match.lon),
+  };
+  localStorage.setItem(cacheKey, JSON.stringify(city));
+  return city;
+}
+
 export default function Home() {
   const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
+  const [cities, setCities] = useState(defaultVisitedCities);
+  const [upcomingCities, setUpcomingCities] = useState(defaultUpcomingCities);
+  const [importStatus, setImportStatus] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
+  const [importedFile, setImportedFile] = useState("");
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("travel-map:import");
+    if (!saved) return;
+    try {
+      const data = JSON.parse(saved) as { visited: City[]; planned: City[]; fileName: string };
+      setCities(data.visited);
+      setUpcomingCities(data.planned);
+      setImportedFile(data.fileName);
+    } catch {
+      localStorage.removeItem("travel-map:import");
+    }
+  }, []);
 
   const zoom = (factor: number) => setView((v) => ({ ...v, scale: Math.max(1, Math.min(4, v.scale * factor)) }));
   const reset = () => setView({ scale: 1, x: 0, y: 0 });
+  const visitedCountries = new Set(cities.map((city) => city.country)).size;
+
+  async function resolveAirports(names: string[]) {
+    const resolved: City[] = [];
+    const unresolved: string[] = [];
+    const uniqueNames = [...new Set(names)];
+    for (let index = 0; index < uniqueNames.length; index += 1) {
+      const airport = uniqueNames[index];
+      setImportStatus(`正在匹配城市 ${index + 1}/${uniqueNames.length}`);
+      const known = findKnownCity(airport);
+      if (known) {
+        resolved.push(known);
+        continue;
+      }
+      try {
+        const city = await geocodeAirport(airport);
+        if (city) resolved.push(city);
+        else unresolved.push(airport);
+      } catch {
+        unresolved.push(airport);
+      }
+      if (index < uniqueNames.length - 1) {
+        await new Promise((done) => window.setTimeout(done, 1050));
+      }
+    }
+    return { cities: uniqueCities(resolved), unresolved };
+  }
+
+  async function importTrips(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setIsImporting(true);
+    setImportStatus("正在读取行程文件…");
+    try {
+      const XLSX = await import("xlsx");
+      const numbers = (await import("xlsx/dist/xlsx.zahl")).default;
+      const workbook = XLSX.read(await file.arrayBuffer(), { numbers, cellDates: true });
+      const finishedRows: TripRow[] = [];
+      const plannedRows: TripRow[] = [];
+
+      for (const sheetName of workbook.SheetNames) {
+        const rows = XLSX.utils.sheet_to_json<TripRow>(workbook.Sheets[sheetName], { defval: "" });
+        if (sheetName.includes("无效")) continue;
+        if (sheetName.includes("待出行")) plannedRows.push(...rows);
+        else if (sheetName.includes("已结束")) finishedRows.push(...rows);
+        else {
+          for (const row of rows) {
+            const status = String(row["客票状态"] ?? "");
+            if (status.includes("已使用")) finishedRows.push(row);
+            else if (status.includes("未使用")) plannedRows.push(row);
+          }
+        }
+      }
+
+      if (!finishedRows.length && !plannedRows.length) {
+        throw new Error("没有找到“已结束”或“待出行”的行程数据");
+      }
+
+      const visited = await resolveAirports(endpoints(finishedRows));
+      const planned = await resolveAirports(endpoints(plannedRows));
+      const visitedKeys = new Set(visited.cities.map(cityKey));
+      const futureOnly = planned.cities.filter((city) => !visitedKeys.has(cityKey(city)));
+      const missing = [...visited.unresolved, ...planned.unresolved];
+
+      setCities(visited.cities);
+      setUpcomingCities(futureOnly);
+      setImportedFile(file.name);
+      localStorage.setItem("travel-map:import", JSON.stringify({
+        visited: visited.cities,
+        planned: futureOnly,
+        fileName: file.name,
+      }));
+      setView({ scale: 1, x: 0, y: 0 });
+      setImportStatus(
+        missing.length
+          ? `导入完成：${visited.cities.length} 座已到访城市，${futureOnly.length} 座待出行城市；${missing.length} 个地点未匹配`
+          : `导入完成：${visited.cities.length} 座已到访城市，${futureOnly.length} 座待出行城市`,
+      );
+    } catch (error) {
+      setImportStatus(error instanceof Error ? `导入失败：${error.message}` : "导入失败，请检查文件格式");
+    } finally {
+      setIsImporting(false);
+      event.target.value = "";
+    }
+  }
+
+  function restoreDefault() {
+    setCities(defaultVisitedCities);
+    setUpcomingCities(defaultUpcomingCities);
+    setImportedFile("");
+    localStorage.removeItem("travel-map:import");
+    setImportStatus("已恢复示例地图");
+    setView({ scale: 1, x: 0, y: 0 });
+  }
 
   return (
     <main className="experience">
@@ -114,7 +240,7 @@ export default function Home() {
                     key={city.name}
                     className="city-node"
                     transform={`translate(${point[0]} ${point[1]})`}
-                    aria-label={`${city.local}，${countryNames[city.country]}`}
+                    aria-label={`${city.local}，${displayCountry(city)}`}
                     onPointerDown={(event) => event.stopPropagation()}
                   >
                     <circle className="hit" r="12" />
@@ -123,7 +249,7 @@ export default function Home() {
                     <g className="city-label">
                       <rect x="12" y="-20" width="118" height="39" rx="7" />
                       <text x="22" y="-5">{city.local}</text>
-                      <text className="sub" x="22" y="10">{countryNames[city.country]}</text>
+                      <text className="sub" x="22" y="10">{displayCountry(city)}</text>
                     </g>
                   </g>
                 );
@@ -136,7 +262,7 @@ export default function Home() {
                     key={city.name}
                     className="city-node upcoming"
                     transform={`translate(${point[0]} ${point[1]})`}
-                    aria-label={`${city.local}，${countryNames[city.country]}，即将点亮`}
+                    aria-label={`${city.local}，${displayCountry(city)}，即将点亮`}
                     onPointerDown={(event) => event.stopPropagation()}
                   >
                     <circle className="hit" r="12" />
@@ -145,7 +271,7 @@ export default function Home() {
                     <g className="city-label">
                       <rect x="12" y="-20" width="128" height="39" rx="7" />
                       <text x="22" y="-5">{city.local}</text>
-                      <text className="sub" x="22" y="10">{countryNames[city.country]} · 即将点亮</text>
+                      <text className="sub" x="22" y="10">{displayCountry(city)} · 即将点亮</text>
                     </g>
                   </g>
                 );
@@ -157,8 +283,32 @@ export default function Home() {
 
       <header className="hero">
         <h1>The World I’ve Explored</h1>
-        <p><strong>4</strong> Countries <span>·</span> <strong>23</strong> Cities</p>
+        <p><strong>{visitedCountries}</strong> Countries <span>·</span> <strong>{cities.length}</strong> Cities</p>
       </header>
+
+      <section className="import-card" aria-label="导入个人行程">
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".numbers,.xls,.xlsx,.csv"
+          onChange={importTrips}
+          hidden
+        />
+        <button className="import-button" onClick={() => fileInput.current?.click()} disabled={isImporting}>
+          <span aria-hidden="true">＋</span>
+          {isImporting ? "正在导入…" : "导入我的行程"}
+        </button>
+        <p>支持航旅纵横导出的 Numbers / Excel 文件 · 数据保存在本机</p>
+        {importedFile && <button className="restore-button" onClick={restoreDefault}>恢复示例地图</button>}
+      </section>
+
+      {importStatus && (
+        <div className="import-status" role="status">
+          <button aria-label="关闭提示" onClick={() => setImportStatus("")}>×</button>
+          <strong>{importedFile || "行程导入"}</strong>
+          <span>{importStatus}</span>
+        </div>
+      )}
 
       <nav className="map-controls" aria-label="Map controls">
         <button aria-label="Zoom in" onClick={(e) => { e.stopPropagation(); zoom(1.25); }}>+</button>
