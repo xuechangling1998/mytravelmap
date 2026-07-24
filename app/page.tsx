@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import world from "world-atlas/countries-110m.json";
@@ -81,9 +81,10 @@ export default function Home() {
   const [upcomingCities, setUpcomingCities] = useState(defaultUpcomingCities);
   const [importStatus, setImportStatus] = useState("");
   const [isImporting, setIsImporting] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [importedFile, setImportedFile] = useState("");
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
+  const dragDepth = useRef(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("travel-map:import");
@@ -128,9 +129,7 @@ export default function Home() {
     return { cities: uniqueCities(resolved), unresolved };
   }
 
-  async function importTrips(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  async function importTrips(file: File) {
     setIsImporting(true);
     setImportStatus("正在读取行程文件…");
     try {
@@ -182,7 +181,6 @@ export default function Home() {
       setImportStatus(error instanceof Error ? `导入失败：${error.message}` : "导入失败，请检查文件格式");
     } finally {
       setIsImporting(false);
-      event.target.value = "";
     }
   }
 
@@ -196,7 +194,39 @@ export default function Home() {
   }
 
   return (
-    <main className="experience">
+    <main
+      className={`experience${isDraggingFile ? " is-file-dragging" : ""}`}
+      onDragEnter={(event) => {
+        event.preventDefault();
+        dragDepth.current += 1;
+        if (event.dataTransfer.types.includes("Files")) setIsDraggingFile(true);
+      }}
+      onDragOver={(event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+      }}
+      onDragLeave={(event) => {
+        event.preventDefault();
+        dragDepth.current -= 1;
+        if (dragDepth.current <= 0) {
+          dragDepth.current = 0;
+          setIsDraggingFile(false);
+        }
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        dragDepth.current = 0;
+        setIsDraggingFile(false);
+        if (isImporting) return;
+        const file = event.dataTransfer.files?.[0];
+        if (!file) return;
+        if (!/\.(numbers|xls|xlsx|csv)$/i.test(file.name)) {
+          setImportStatus("导入失败：请拖入 Numbers、Excel 或 CSV 行程文件");
+          return;
+        }
+        void importTrips(file);
+      }}
+    >
       <div
         className="map-viewport"
         onPointerDown={(event) => {
@@ -286,24 +316,15 @@ export default function Home() {
         <p><strong>{visitedCountries}</strong> Countries <span>·</span> <strong>{cities.length}</strong> Cities</p>
       </header>
 
-      <div className="import-control">
-        <input
-          ref={fileInput}
-          type="file"
-          accept=".numbers,.xls,.xlsx,.csv"
-          onChange={importTrips}
-          hidden
-        />
-        <button
-          className={`import-icon${isImporting ? " loading" : ""}`}
-          onClick={() => fileInput.current?.click()}
-          disabled={isImporting}
-          aria-label={isImporting ? "正在导入行程" : "导入我的行程"}
-          title={isImporting ? "正在导入…" : "导入我的行程"}
-        >
-          <span className="upload-arrow" aria-hidden="true" />
-        </button>
-      </div>
+      {isDraggingFile && (
+        <div className="drop-overlay" role="status">
+          <div className="drop-message">
+            <span aria-hidden="true">↓</span>
+            <strong>松开即可导入行程</strong>
+            <small>支持 Numbers、Excel 和 CSV 文件</small>
+          </div>
+        </div>
+      )}
 
       {importStatus && (
         <div className="import-status" role="status">
