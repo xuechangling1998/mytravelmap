@@ -286,7 +286,7 @@ export default function Home() {
         <p><strong>{visitedCountries}</strong> Countries <span>·</span> <strong>{cities.length}</strong> Cities</p>
       </header>
 
-      <section className="import-card" aria-label="导入个人行程">
+      <div className="import-control">
         <input
           ref={fileInput}
           type="file"
@@ -294,19 +294,23 @@ export default function Home() {
           onChange={importTrips}
           hidden
         />
-        <button className="import-button" onClick={() => fileInput.current?.click()} disabled={isImporting}>
-          <span aria-hidden="true">＋</span>
-          {isImporting ? "正在导入…" : "导入我的行程"}
+        <button
+          className={`import-icon${isImporting ? " loading" : ""}`}
+          onClick={() => fileInput.current?.click()}
+          disabled={isImporting}
+          aria-label={isImporting ? "正在导入行程" : "导入我的行程"}
+          title={isImporting ? "正在导入…" : "导入我的行程"}
+        >
+          <span className="upload-arrow" aria-hidden="true" />
         </button>
-        <p>支持航旅纵横导出的 Numbers / Excel 文件 · 数据保存在本机</p>
-        {importedFile && <button className="restore-button" onClick={restoreDefault}>恢复示例地图</button>}
-      </section>
+      </div>
 
       {importStatus && (
         <div className="import-status" role="status">
           <button aria-label="关闭提示" onClick={() => setImportStatus("")}>×</button>
           <strong>{importedFile || "行程导入"}</strong>
           <span>{importStatus}</span>
+          {importedFile && <button className="status-restore" onClick={restoreDefault}>恢复示例地图</button>}
         </div>
       )}
 
