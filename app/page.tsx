@@ -94,7 +94,9 @@ export default function Home() {
       const data = JSON.parse(saved) as { visited: City[]; planned: City[]; fileName: string };
       setCities(data.visited.map((city) => {
         const known = findKnownCity(city.local) ?? findKnownCity(city.name);
-        return known?.photo ? { ...city, photo: known.photo, photoLabel: known.photoLabel } : city;
+        return known?.photo
+          ? { ...city, photo: known.photo, photoLabel: known.photoLabel, photoAspect: known.photoAspect }
+          : city;
       }));
       setUpcomingCities(data.planned);
       setImportedFile(data.fileName);
@@ -282,13 +284,19 @@ export default function Home() {
                     <circle className="halo" r="8" />
                     <circle className="core" r="2.8" />
                     {city.photo ? (
-                      <foreignObject className="city-photo-card" x="12" y="-150" width="196" height="140">
+                      <foreignObject
+                        className="city-photo-card"
+                        x="12"
+                        y={city.photoAspect && city.photoAspect < 1 ? -190 : -150}
+                        width="196"
+                        height="310"
+                      >
                         <div className="photo-card">
                           <div className="photo-heading">
                             <strong>{city.local}</strong>
                             <span>{displayCountry(city)}</span>
                           </div>
-                          <div className="photo-frame">
+                          <div className="photo-frame" style={{ aspectRatio: city.photoAspect ?? 3 / 2 }}>
                             <img src={`./${city.photo}`} alt={`${city.local}${city.photoLabel ? ` · ${city.photoLabel}` : ""}`} />
                             {city.photoLabel && <small>{city.photoLabel}</small>}
                           </div>

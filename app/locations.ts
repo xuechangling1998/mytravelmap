@@ -6,6 +6,7 @@ export type City = {
   lon: number;
   photo?: string;
   photoLabel?: string;
+  photoAspect?: number;
 };
 
 export const countryNames: Record<string, string> = {
@@ -21,7 +22,7 @@ export const countryNames: Record<string, string> = {
 export const defaultVisitedCities: City[] = [
   { name: "Shenzhen", local: "深圳", country: "China", lat: 22.5431, lon: 114.0579 },
   { name: "Guangzhou", local: "广州", country: "China", lat: 23.1291, lon: 113.2644 },
-  { name: "Hong Kong", local: "香港", country: "China", lat: 22.3193, lon: 114.1694, photo: "photos/hong-kong.jpg", photoLabel: "迪士尼酒店" },
+  { name: "Hong Kong", local: "香港", country: "China", lat: 22.3193, lon: 114.1694, photo: "photos/hong-kong.jpg", photoLabel: "迪士尼酒店", photoAspect: 2 / 3 },
   { name: "Shanghai", local: "上海", country: "China", lat: 31.2304, lon: 121.4737 },
   { name: "Beijing", local: "北京", country: "China", lat: 39.9042, lon: 116.4074 },
   { name: "Harbin", local: "哈尔滨", country: "China", lat: 45.8038, lon: 126.5349 },
@@ -35,13 +36,13 @@ export const defaultVisitedCities: City[] = [
   { name: "Kunming", local: "昆明", country: "China", lat: 25.0389, lon: 102.7183 },
   { name: "Ürümqi", local: "乌鲁木齐", country: "China", lat: 43.8256, lon: 87.6168 },
   { name: "Yining", local: "伊宁", country: "China", lat: 43.9771, lon: 81.5275 },
-  { name: "Altay", local: "阿勒泰", country: "China", lat: 47.8484, lon: 88.1396, photo: "photos/altay.jpg", photoLabel: "喀纳斯" },
+  { name: "Altay", local: "阿勒泰", country: "China", lat: 47.8484, lon: 88.1396, photo: "photos/altay.jpg", photoLabel: "喀纳斯", photoAspect: 2 / 3 },
   { name: "Zunyi", local: "遵义", country: "China", lat: 27.7257, lon: 106.9272 },
-  { name: "Tokyo", local: "东京", country: "Japan", lat: 35.6762, lon: 139.6503, photo: "photos/tokyo.jpg", photoLabel: "镰仓" },
-  { name: "Osaka", local: "大阪", country: "Japan", lat: 34.6937, lon: 135.5023, photo: "photos/osaka.jpg" },
+  { name: "Tokyo", local: "东京", country: "Japan", lat: 35.6762, lon: 139.6503, photo: "photos/tokyo.jpg", photoLabel: "镰仓", photoAspect: 3 / 4 },
+  { name: "Osaka", local: "大阪", country: "Japan", lat: 34.6937, lon: 135.5023, photo: "photos/osaka.jpg", photoAspect: 3 / 2 },
   { name: "Kota Kinabalu", local: "哥打京那巴鲁", country: "Malaysia", lat: 5.9804, lon: 116.0735 },
-  { name: "Tawau", local: "斗湖", country: "Malaysia", lat: 4.2448, lon: 117.8912, photo: "photos/tawau.jpg", photoLabel: "仙本那" },
-  { name: "Istanbul", local: "伊斯坦布尔", country: "Türkiye", lat: 41.0082, lon: 28.9784, photo: "photos/istanbul.jpg", photoLabel: "博斯普鲁斯海峡" },
+  { name: "Tawau", local: "斗湖", country: "Malaysia", lat: 4.2448, lon: 117.8912, photo: "photos/tawau.jpg", photoLabel: "仙本那", photoAspect: 2 / 3 },
+  { name: "Istanbul", local: "伊斯坦布尔", country: "Türkiye", lat: 41.0082, lon: 28.9784, photo: "photos/istanbul.jpg", photoLabel: "博斯普鲁斯海峡", photoAspect: 2 / 3 },
 ];
 
 export const defaultUpcomingCities: City[] = [
