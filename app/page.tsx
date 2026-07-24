@@ -83,6 +83,7 @@ export default function Home() {
   const [isImporting, setIsImporting] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [importedFile, setImportedFile] = useState("");
+  const [openPhoto, setOpenPhoto] = useState("");
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
   const dragDepth = useRef(0);
 
@@ -91,7 +92,10 @@ export default function Home() {
     if (!saved) return;
     try {
       const data = JSON.parse(saved) as { visited: City[]; planned: City[]; fileName: string };
-      setCities(data.visited);
+      setCities(data.visited.map((city) => {
+        const known = findKnownCity(city.local) ?? findKnownCity(city.name);
+        return known?.photo ? { ...city, photo: known.photo, photoLabel: known.photoLabel } : city;
+      }));
       setUpcomingCities(data.planned);
       setImportedFile(data.fileName);
     } catch {
@@ -268,19 +272,35 @@ export default function Home() {
                 return (
                   <g
                     key={city.name}
-                    className="city-node"
+                    className={`city-node${openPhoto === cityKey(city) ? " photo-open" : ""}`}
                     transform={`translate(${point[0]} ${point[1]})`}
                     aria-label={`${city.local}，${displayCountry(city)}`}
                     onPointerDown={(event) => event.stopPropagation()}
+                    onClick={() => city.photo && setOpenPhoto((current) => current === cityKey(city) ? "" : cityKey(city))}
                   >
                     <circle className="hit" r="12" />
                     <circle className="halo" r="8" />
                     <circle className="core" r="2.8" />
-                    <g className="city-label">
-                      <rect x="12" y="-20" width="118" height="39" rx="7" />
-                      <text x="22" y="-5">{city.local}</text>
-                      <text className="sub" x="22" y="10">{displayCountry(city)}</text>
-                    </g>
+                    {city.photo ? (
+                      <foreignObject className="city-photo-card" x="12" y="-150" width="196" height="140">
+                        <div className="photo-card">
+                          <div className="photo-heading">
+                            <strong>{city.local}</strong>
+                            <span>{displayCountry(city)}</span>
+                          </div>
+                          <div className="photo-frame">
+                            <img src={`./${city.photo}`} alt={`${city.local}${city.photoLabel ? ` · ${city.photoLabel}` : ""}`} />
+                            {city.photoLabel && <small>{city.photoLabel}</small>}
+                          </div>
+                        </div>
+                      </foreignObject>
+                    ) : (
+                      <g className="city-label">
+                        <rect x="12" y="-20" width="118" height="39" rx="7" />
+                        <text x="22" y="-5">{city.local}</text>
+                        <text className="sub" x="22" y="10">{displayCountry(city)}</text>
+                      </g>
+                    )}
                   </g>
                 );
               })}
