@@ -25,11 +25,14 @@ button { color:inherit; font:inherit; }
 .lens-preview { display:none; overflow:visible; pointer-events:none; }
 .city-node.lens:hover .lens-preview,.city-node.lens:focus .lens-preview { display:block; }
 .city-node.lens:hover .city-label,.city-node.lens:focus .city-label { display:none; }
-.lens-preview-card { width:176px; padding:7px; border:1px solid rgba(255,255,255,.22); border-radius:11px; background:rgba(5,12,22,.96); box-shadow:0 16px 44px rgba(0,0,0,.66); color:#fff; font-family:Arial,Helvetica,sans-serif; backdrop-filter:blur(16px); }
-.lens-preview-heading { display:flex; align-items:center; justify-content:space-between; gap:6px; height:20px; padding:0 2px; white-space:nowrap; }
-.lens-preview-heading strong { overflow:hidden; font-size:10px; text-overflow:ellipsis; }
-.lens-preview-heading span { flex:none; color:#9ba8ba; font-size:8px; }
-.lens-preview-card img { display:block; width:100%; height:92px; object-fit:contain; border-radius:7px; background:#08111d; }
+.lens-preview-card { position:relative; width:214px; overflow:visible; border:1px solid rgba(255,197,106,.58); border-radius:13px; background:rgba(5,12,22,.97); box-shadow:0 20px 56px rgba(0,0,0,.72),0 0 24px rgba(255,174,53,.12); color:#fff; font-family:Arial,Helvetica,sans-serif; backdrop-filter:blur(18px); }
+.lens-preview-card::after { content:""; position:absolute; left:-7px; bottom:18px; width:12px; height:12px; border:solid rgba(255,197,106,.58); border-width:0 0 1px 1px; background:#07101d; transform:rotate(45deg); }
+.lens-preview-card img { display:block; width:100%; height:142px; object-fit:cover; border-radius:12px 12px 0 0; background:#08111d; }
+.lens-preview-copy { display:flex; flex-direction:column; align-items:flex-start; padding:13px 16px 15px; }
+.lens-preview-copy strong { max-width:100%; overflow:hidden; font:500 19px/1.15 Georgia,"Times New Roman",serif; text-overflow:ellipsis; white-space:nowrap; }
+.lens-preview-copy > span { margin-top:4px; color:#a6afbc; font-size:10px; }
+.lens-preview-copy small { display:flex; align-items:center; gap:6px; margin-top:12px; color:var(--gold); font-size:10px; font-weight:600; }
+.lens-preview-copy i { font-style:normal; font-size:12px; }
 .city-node.upcoming .halo { fill:#58c7ff; opacity:.55; filter:drop-shadow(0 0 7px rgba(72,190,255,.9)); }
 .city-node.upcoming .core { fill:#dff7ff; stroke:#55c8ff; }
 .city-label { display:none; pointer-events:none; }

@@ -315,17 +315,21 @@ export default function Home() {
                     {album && (
                       <foreignObject
                         className="lens-preview"
-                        x="12"
-                        y="-142"
-                        width="188"
-                        height="132"
+                        x="13"
+                        y="-245"
+                        width="228"
+                        height="238"
                       >
                         <div className="lens-preview-card">
-                          <div className="lens-preview-heading">
+                          <img src={`./${album.hero}`} alt={`${album.local}摄影集封面`} />
+                          <div className="lens-preview-copy">
                             <strong>{album.local}</strong>
                             <span>{album.countryLocal}</span>
+                            <small>
+                              <i aria-hidden="true">▣</i>
+                              {album.photos.length + 1} 张照片
+                            </small>
                           </div>
-                          <img src={`./${album.hero}`} alt={`${album.local}摄影集封面`} />
                         </div>
                       </foreignObject>
                     )}
