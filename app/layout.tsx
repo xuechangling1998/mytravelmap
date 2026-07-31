@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "The World I’ve Explored",
-  description: "Import your flight history and turn every journey into a personal travel map.",
+  title: "The World I’ve Explored Through My Lens",
+  description: "A personal atlas of travel footprints and photographic memories.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

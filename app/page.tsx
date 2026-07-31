@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import world from "world-atlas/countries-110m.json";
+import CityGallery from "./city-gallery";
+import { photoAlbumsByCity, photoAlbumsBySlug } from "./photo-manifest";
 import {
   City,
   countryNames,
@@ -83,7 +85,7 @@ export default function Home() {
   const [isImporting, setIsImporting] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [importedFile, setImportedFile] = useState("");
-  const [openPhoto, setOpenPhoto] = useState("");
+  const [gallerySlug, setGallerySlug] = useState("");
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
   const dragDepth = useRef(0);
 
@@ -92,17 +94,22 @@ export default function Home() {
     if (!saved) return;
     try {
       const data = JSON.parse(saved) as { visited: City[]; planned: City[]; fileName: string };
-      setCities(data.visited.map((city) => {
-        const known = findKnownCity(city.local) ?? findKnownCity(city.name);
-        return known?.photo
-          ? { ...city, photo: known.photo, photoLabel: known.photoLabel, photoAspect: known.photoAspect }
-          : city;
-      }));
+      setCities(data.visited);
       setUpcomingCities(data.planned);
       setImportedFile(data.fileName);
     } catch {
       localStorage.removeItem("travel-map:import");
     }
+  }, []);
+
+  useEffect(() => {
+    const syncGalleryRoute = () => {
+      const match = window.location.hash.match(/^#\/city\/([^/]+)$/);
+      setGallerySlug(match?.[1] ?? "");
+    };
+    syncGalleryRoute();
+    window.addEventListener("hashchange", syncGalleryRoute);
+    return () => window.removeEventListener("hashchange", syncGalleryRoute);
   }, []);
 
   const zoom = (factor: number) => setView((v) => ({ ...v, scale: Math.max(1, Math.min(4, v.scale * factor)) }));
@@ -199,6 +206,18 @@ export default function Home() {
     setView({ scale: 1, x: 0, y: 0 });
   }
 
+  function openGallery(slug: string) {
+    window.location.hash = `/city/${slug}`;
+  }
+
+  function closeGallery() {
+    window.history.pushState(null, "", `${window.location.pathname}${window.location.search}`);
+    setGallerySlug("");
+  }
+
+  const activeAlbum = gallerySlug ? photoAlbumsBySlug.get(gallerySlug) : undefined;
+  if (activeAlbum) return <CityGallery album={activeAlbum} onBack={closeGallery} />;
+
   return (
     <main
       className={`experience${isDraggingFile ? " is-file-dragging" : ""}`}
@@ -271,44 +290,35 @@ export default function Home() {
               {cities.map((city) => {
                 const point = projection([city.lon, city.lat]);
                 if (!point) return null;
+                const album = photoAlbumsByCity.get(city.name);
                 return (
                   <g
                     key={city.name}
-                    className={`city-node${openPhoto === cityKey(city) ? " photo-open" : ""}`}
+                    className={`city-node footprint${album ? " lens" : ""}`}
                     transform={`translate(${point[0]} ${point[1]})`}
-                    aria-label={`${city.local}，${displayCountry(city)}`}
+                    aria-label={`${city.local}，${displayCountry(city)}${album ? "，打开摄影集" : ""}`}
                     onPointerDown={(event) => event.stopPropagation()}
-                    onClick={() => city.photo && setOpenPhoto((current) => current === cityKey(city) ? "" : cityKey(city))}
+                    onClick={() => album && openGallery(album.slug)}
+                    onKeyDown={(event) => {
+                      if (album && (event.key === "Enter" || event.key === " ")) {
+                        event.preventDefault();
+                        openGallery(album.slug);
+                      }
+                    }}
+                    role={album ? "button" : undefined}
+                    tabIndex={album ? 0 : undefined}
                   >
                     <circle className="hit" r="12" />
                     <circle className="halo" r="8" />
+                    {album && <circle className="lens-ring" r="6.2" />}
                     <circle className="core" r="2.8" />
-                    {city.photo ? (
-                      <foreignObject
-                        className="city-photo-card"
-                        x="12"
-                        y={city.photoAspect && city.photoAspect < 1 ? -190 : -150}
-                        width="196"
-                        height="310"
-                      >
-                        <div className="photo-card">
-                          <div className="photo-heading">
-                            <strong>{city.local}</strong>
-                            <span>{displayCountry(city)}</span>
-                          </div>
-                          <div className="photo-frame" style={{ aspectRatio: city.photoAspect ?? 3 / 2 }}>
-                            <img src={`./${city.photo}`} alt={`${city.local}${city.photoLabel ? ` · ${city.photoLabel}` : ""}`} />
-                            {city.photoLabel && <small>{city.photoLabel}</small>}
-                          </div>
-                        </div>
-                      </foreignObject>
-                    ) : (
-                      <g className="city-label">
-                        <rect x="12" y="-20" width="118" height="39" rx="7" />
-                        <text x="22" y="-5">{city.local}</text>
-                        <text className="sub" x="22" y="10">{displayCountry(city)}</text>
-                      </g>
-                    )}
+                    <g className="city-label">
+                      <rect x="12" y="-20" width={album ? "142" : "118"} height="39" rx="7" />
+                      <text x="22" y="-5">{album?.local ?? city.local}</text>
+                      <text className="sub" x="22" y="10">
+                        {displayCountry(city)}{album ? ` · Lens · ${album.photos.length + 1}张` : ""}
+                      </text>
+                    </g>
                   </g>
                 );
               })}
@@ -340,7 +350,7 @@ export default function Home() {
       </div>
 
       <header className="hero">
-        <h1>The World I’ve Explored</h1>
+        <h1>The World I’ve Explored <em>Through My Lens</em></h1>
         <p><strong>{visitedCountries}</strong> Countries <span>·</span> <strong>{cities.length}</strong> Cities</p>
       </header>
 
