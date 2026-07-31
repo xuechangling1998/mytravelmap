@@ -312,6 +312,23 @@ export default function Home() {
                     <circle className="halo" r="8" />
                     {album && <circle className="lens-ring" r="6.2" />}
                     <circle className="core" r="2.8" />
+                    {album && (
+                      <foreignObject
+                        className="lens-preview"
+                        x="12"
+                        y="-142"
+                        width="188"
+                        height="132"
+                      >
+                        <div className="lens-preview-card">
+                          <div className="lens-preview-heading">
+                            <strong>{album.local}</strong>
+                            <span>{album.countryLocal}</span>
+                          </div>
+                          <img src={`./${album.hero}`} alt={`${album.local}摄影集封面`} />
+                        </div>
+                      </foreignObject>
+                    )}
                     <g className="city-label">
                       <rect x="12" y="-20" width={album ? "142" : "118"} height="39" rx="7" />
                       <text x="22" y="-5">{album?.local ?? city.local}</text>

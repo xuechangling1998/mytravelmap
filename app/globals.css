@@ -22,6 +22,14 @@ button { color:inherit; font:inherit; }
 .city-node.lens:hover .lens-ring,.city-node.lens:focus .lens-ring { stroke:#fff; stroke-width:1.7; opacity:1; }
 .city-node.lens:focus-visible { outline:none; }
 @keyframes lens-pulse { 0%,100%{r:5.8;opacity:.7}50%{r:7.2;opacity:1} }
+.lens-preview { display:none; overflow:visible; pointer-events:none; }
+.city-node.lens:hover .lens-preview,.city-node.lens:focus .lens-preview { display:block; }
+.city-node.lens:hover .city-label,.city-node.lens:focus .city-label { display:none; }
+.lens-preview-card { width:176px; padding:7px; border:1px solid rgba(255,255,255,.22); border-radius:11px; background:rgba(5,12,22,.96); box-shadow:0 16px 44px rgba(0,0,0,.66); color:#fff; font-family:Arial,Helvetica,sans-serif; backdrop-filter:blur(16px); }
+.lens-preview-heading { display:flex; align-items:center; justify-content:space-between; gap:6px; height:20px; padding:0 2px; white-space:nowrap; }
+.lens-preview-heading strong { overflow:hidden; font-size:10px; text-overflow:ellipsis; }
+.lens-preview-heading span { flex:none; color:#9ba8ba; font-size:8px; }
+.lens-preview-card img { display:block; width:100%; height:92px; object-fit:contain; border-radius:7px; background:#08111d; }
 .city-node.upcoming .halo { fill:#58c7ff; opacity:.55; filter:drop-shadow(0 0 7px rgba(72,190,255,.9)); }
 .city-node.upcoming .core { fill:#dff7ff; stroke:#55c8ff; }
 .city-label { display:none; pointer-events:none; }
